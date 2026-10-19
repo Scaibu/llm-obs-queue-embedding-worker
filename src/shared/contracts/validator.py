@@ -1,6 +1,7 @@
 import os
-import re
 from pathlib import Path
+from python_shared import ValidationRules
+
 BASE_DIR = Path(__file__).resolve().parents[3]
 CONTRACT_FILE = os.getenv("CONTRACTS_PATH", BASE_DIR / "contracts" / "jobs" / "enrich-span.yaml")
 
@@ -14,10 +15,10 @@ class ContractValidationError(ValueError):
 
 
 def _extract_int(text: str, key: str) -> int:
-    m = re.search(rf"^{key}:\s*(\d+)\s*$", text, re.MULTILINE)
-    if not m:
-        raise ContractValidationError(f"Missing integer key: {key}")
-    return int(m.group(1))
+    try:
+        return ValidationRules.extract_int(text, key)
+    except ValueError as e:
+        raise ContractValidationError(str(e))
 
 
 def load_enrich_span_contract() -> dict:
